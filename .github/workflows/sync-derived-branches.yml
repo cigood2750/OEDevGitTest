@@ -1,0 +1,34 @@
+name: Sync test into derived branches
+
+on:
+  push:
+    branches:
+      - test
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        branch:
+          - dev-another-project
+          - project-one
+          - service-pack
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge test into ${{ matrix.branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout "${{ matrix.branch }}"
+          git merge origin/test --no-edit
+          git push origin "${{ matrix.branch }}"
