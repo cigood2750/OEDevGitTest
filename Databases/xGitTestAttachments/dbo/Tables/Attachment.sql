@@ -25,6 +25,7 @@ CREATE TABLE [dbo].[Attachment] (
     [isMarkedFileNotPresent]      BIT             NULL,
     [FileDataPurgeDate]           DATETIME        NULL,
     [isArchivedLTS]               BIT             NULL,
+    [NewColumn]                   NCHAR (10)      NULL,
     CONSTRAINT [PK_Attachment] PRIMARY KEY CLUSTERED ([AttachmentId] ASC)
 );
 
