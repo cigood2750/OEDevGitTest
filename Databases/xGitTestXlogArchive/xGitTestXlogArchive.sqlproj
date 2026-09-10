@@ -5,6 +5,15 @@
     <Name>xGitTestXlogArchive</Name>
     <DSP>Microsoft.Data.Tools.Schema.Sql.Sql170DatabaseSchemaProvider</DSP>
     <ModelCollation>1033, CI</ModelCollation>
-    <ProjectGuid>{E7651AB5-BB13-4F61-9355-BB44DBF33B03}</ProjectGuid>
+    <ProjectGuid>{e7651ab5-bb13-4f61-9355-bb44dbf33b03}</ProjectGuid>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
   </PropertyGroup>
+  <!-- Cursor/VS Solution Explorer shows None/Compile items, not the SDK's Build glob. -->
+  <ItemGroup>
+    <None Include="**/*.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="dbo\" />
+    <Folder Include="dbo\Tables\" />
+  </ItemGroup>
 </Project>
