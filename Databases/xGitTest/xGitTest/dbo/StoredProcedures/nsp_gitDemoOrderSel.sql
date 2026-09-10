@@ -18,6 +18,9 @@ BEGIN
 	WHERE @OrderId IS NULL
 		OR o.OrderId = @OrderId
 	ORDER BY o.OrderId
+
+
+	select 'A new message'
 END
 
 GO
