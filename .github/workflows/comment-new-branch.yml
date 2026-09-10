@@ -1,0 +1,74 @@
+name: Comment on new branch
+
+on:
+  create:
+
+permissions:
+  contents: write
+
+jobs:
+  comment-source-branch:
+    if: github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find source branch and comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          REF="${{ github.event.ref }}"
+          NEW_BRANCH="${REF#refs/heads/}"
+          NEW_SHA="$(git rev-parse "origin/${NEW_BRANCH}" 2>/dev/null || git rev-parse "${NEW_BRANCH}")"
+
+          SOURCE=""
+          EXACT=()
+
+          while IFS= read -r branch; do
+            [ "$branch" = "$NEW_BRANCH" ] && continue
+            tip="$(git rev-parse "origin/${branch}")"
+            if [ "$tip" = "$NEW_SHA" ]; then
+              EXACT+=("$branch")
+            fi
+          done < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin | sed 's#^origin/##' | grep -v '^HEAD$')
+
+          pick_preferred() {
+            for preferred in test main; do
+              for b in "$@"; do
+                [ "$b" = "$preferred" ] && echo "$b" && return
+              done
+            done
+            echo "$1"
+          }
+
+          if [ "${#EXACT[@]}" -gt 0 ]; then
+            SOURCE="$(pick_preferred "${EXACT[@]}")"
+          else
+            BEST=""
+            BEST_DIST=999999
+            while IFS= read -r branch; do
+              [ "$branch" = "$NEW_BRANCH" ] && continue
+              tip="$(git rev-parse "origin/${branch}")"
+              base="$(git merge-base "$tip" "$NEW_SHA" || true)"
+              [ -z "$base" ] && continue
+              dist="$(git rev-list --count "${base}..${NEW_SHA}")"
+              if [ "$dist" -lt "$BEST_DIST" ]; then
+                BEST_DIST="$dist"
+                BEST="$branch"
+              fi
+            done < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin | sed 's#^origin/##' | grep -v '^HEAD$')
+            SOURCE="$BEST"
+          fi
+
+          if [ -z "$SOURCE" ]; then
+            BODY="Branch \`${NEW_BRANCH}\` was created, but its source branch could not be determined."
+          else
+            BODY="Branch \`${NEW_BRANCH}\` was created from \`${SOURCE}\`."
+          fi
+
+          gh api "repos/${{ github.repository }}/commits/${NEW_SHA}/comments" -f body="$BODY"
