@@ -18,4 +18,10 @@
     <Folder Include="dbo\StoredProcedures\" />
     <Folder Include="dbo\Tables\" />
   </ItemGroup>
+  <ItemGroup>
+    <PreDeploy Include="050 PreScript.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <PostDeploy Include="900 PostScript.sql" />
+  </ItemGroup>
 </Project>
